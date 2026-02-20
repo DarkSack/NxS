@@ -1,0 +1,48 @@
+@import url("https://fonts.googleapis.com/css2?family=Rubik+Spray+Paint&family=Montserrat:wght@300;500;700&display=swap");
+
+body {
+  margin: 0;
+  background-image: url("/NxS.png");
+  font-family: Montserrat, sans-serif;
+  color: white;
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.card {
+  background: rgb(0, 119, 255);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 40px;
+  width: 90%;
+  max-width: 520px;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+}
+
+.brand {
+  font-family: "Sedgwick Ave Display", cursive;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 3rem;
+  color: #ffffff;
+  margin: 15px 0;
+}
+
+.valid {
+  color: #22c55e;
+}
+
+.invalid {
+  color: #ef4444;
+}
+
+.features {
+  margin-top: 15px;
+  text-align: left;
+}
