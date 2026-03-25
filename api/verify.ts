@@ -19,7 +19,7 @@ export interface Funda {
 
 // ── DB ────────────────────────────────────────────────────────
 const DB_NAME = import.meta.env.VITE_DB_NAME;
-const STORE   = import.meta.env.VITE_DB_STORE;
+const STORE = import.meta.env.VITE_DB_STORE;
 
 function getDB() {
   return openDB(DB_NAME, 1, {
@@ -57,10 +57,10 @@ export async function verifyQR(code: string): Promise<VerifyResponse> {
   if (!funda) return { valido: false };
 
   return {
-    valido:        true,
-    modelo:        funda.modelo,
-    material:      funda.material,
-    proteccion:    funda.proteccion,
+    valido: true,
+    modelo: funda.modelo,
+    material: funda.material,
+    proteccion: funda.proteccion,
     compatibilidad: funda.compatibilidad,
   };
 }

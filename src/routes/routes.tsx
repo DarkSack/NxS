@@ -8,7 +8,7 @@ const RouteManager = () => {
     <Router>
       <Routes>
         {/* Public Routes */}
-        <Route path="/verify/:codigo" element={<Verify />} />{" "}
+        <Route path="/verify/:codigo" element={<Verify />} />
         <Route path="/adminpage" element={<AdminPage />} />
         {/* 404 Not Found */}
         <Route path="*" element={<div>404 - Page Not Found</div>} />

@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { verifyQR } from "../../api/verify";
 import { useParams } from "react-router-dom";
 
+// ✅ CORRECCIÓN 4: Se agregó `valido` a la interfaz Data
 interface Data {
+  valido: boolean;
   modelo?: string;
   material?: string;
   proteccion?: string;
@@ -13,26 +15,52 @@ export default function Verify() {
   const { codigo } = useParams<{ codigo: string }>();
 
   const [loading, setLoading] = useState<boolean>(!!codigo);
-  const [valido, setValido] = useState<boolean | null>(codigo ? null : false);
+  const [valido, setValido] = useState<boolean | null>(null);
   const [data, setData] = useState<Data | null>(null);
   const [revealed, setRevealed] = useState(false);
 
+  // ✅ CORRECCIÓN 1: Computed value instead of state
+  const sinCodigo = !codigo;
+
+  // ✅ CORRECCIÓN 3: mounted como ref para que los closures lean el valor actualizado
+  const mountedRef = useRef(true);
+
   useEffect(() => {
-    if (!codigo) return;
-    let mounted = true;
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!codigo) {
+      return;
+    }
+
+    // ✅ CORRECCIÓN 2: clearTimeout para proteger el setTimeout al desmontar
+    let timeoutId: ReturnType<typeof setTimeout>;
+
     verifyQR(codigo)
       .then((res) => {
-        if (!mounted) return;
+        if (!mountedRef.current) return;
         setValido(res.valido);
         setData(res);
       })
-      .catch(() => { if (mounted) setValido(false); })
+      .catch(() => {
+        if (mountedRef.current) setValido(false);
+      })
       .finally(() => {
-        if (!mounted) return;
+        if (!mountedRef.current) return;
         setLoading(false);
-        setTimeout(() => setRevealed(true), 80);
+        timeoutId = setTimeout(() => {
+          // ✅ CORRECCIÓN 2: Verificar mounted dentro del setTimeout
+          if (mountedRef.current) setRevealed(true);
+        }, 80);
       });
-    return () => { mounted = false; };
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
   }, [codigo]);
 
   return (
@@ -93,7 +121,7 @@ export default function Verify() {
           z-index: 1;
           width: 100%;
           max-width: 480px;
-          background: rgba(10, 10, 10, 0.72);
+          background: rgba(10, 10, 10, 0);
           backdrop-filter: blur(28px);
           -webkit-backdrop-filter: blur(28px);
           border-radius: 24px;
@@ -118,6 +146,7 @@ export default function Verify() {
         }
         .vf-bar-valid   { background: linear-gradient(90deg, #16a34a, #4ade80, #86efac); }
         .vf-bar-invalid { background: linear-gradient(90deg, #991b1b, #ef4444, #fca5a5); }
+        .vf-bar-warning { background: linear-gradient(90deg, #92400e, #f59e0b, #fde68a); }
 
         /* ── INNER PADDING ── */
         .vf-inner { padding: 2.5rem 2.5rem 2rem; }
@@ -129,9 +158,8 @@ export default function Verify() {
           line-height: 1;
           letter-spacing: 0.02em;
           margin-bottom: 0.25rem;
+          color: #ffffff;
         }
-        .vf-brand-valid   { color: #ffffff; }
-        .vf-brand-invalid { color: #ffffff; }
 
         .vf-tagline {
           font-size: 0.65rem;
@@ -172,6 +200,11 @@ export default function Verify() {
           border: 1px solid rgba(239,68,68,0.25);
           color: #ef4444;
         }
+        .vf-status-warning {
+          background: rgba(245,158,11,0.1);
+          border: 1px solid rgba(245,158,11,0.25);
+          color: #f59e0b;
+        }
         .vf-status-dot {
           width: 6px; height: 6px;
           border-radius: 50%;
@@ -179,6 +212,7 @@ export default function Verify() {
         }
         .vf-status-dot-valid   { background: #4ade80; box-shadow: 0 0 6px #4ade80; }
         .vf-status-dot-invalid { background: #ef4444; box-shadow: 0 0 6px #ef4444; }
+        .vf-status-dot-warning { background: #f59e0b; box-shadow: 0 0 6px #f59e0b; }
         @keyframes pulse-dot {
           0%,100% { opacity: 1; }
           50%     { opacity: 0.4; }
@@ -252,8 +286,8 @@ export default function Verify() {
           white-space: nowrap;
         }
 
-        /* ── INVALID ICON ── */
-        .vf-x-icon {
+        /* ── ICON ── */
+        .vf-icon {
           font-size: 2.5rem;
           margin-bottom: 0.75rem;
           display: block;
@@ -275,21 +309,38 @@ export default function Verify() {
           <div className={`vf-card ${revealed ? "revealed" : ""}`}>
 
             {/* barra de color arriba */}
-            <div className={`vf-bar ${valido ? "vf-bar-valid" : "vf-bar-invalid"}`} />
+            <div className={`vf-bar ${
+              sinCodigo
+                ? "vf-bar-warning"
+                : valido
+                  ? "vf-bar-valid"
+                  : "vf-bar-invalid"
+            }`} />
 
             <div className="vf-inner">
 
               {/* brand */}
-              <div className={`vf-brand ${valido ? "vf-brand-valid" : "vf-brand-invalid"}`}>
-                NxS
-              </div>
+              <div className="vf-brand">NxS</div>
               <p className="vf-tagline">Certificado de autenticidad</p>
 
               <hr className="vf-divider" />
 
-              {valido && data ? (
+              {/* ✅ CORRECCIÓN 1: Caso explícito para cuando no hay código */}
+              {sinCodigo ? (
                 <>
-                  {/* badge */}
+                  <div className="vf-status vf-status-warning">
+                    <span className="vf-status-dot vf-status-dot-warning" />
+                    Sin código
+                  </div>
+                  <span className="vf-icon">🔍</span>
+                  <p className="vf-headline">No se proporcionó un código.</p>
+                  <p className="vf-subtext">
+                    Escanea el código QR de tu producto NxS para verificar su autenticidad.
+                  </p>
+                </>
+              ) : valido && data ? (
+                <>
+                  {/* badge válido */}
                   <div className="vf-status vf-status-valid">
                     <span className="vf-status-dot vf-status-dot-valid" />
                     Producto verificado
@@ -337,7 +388,7 @@ export default function Verify() {
                     No verificado
                   </div>
 
-                  <span className="vf-x-icon">⚠️</span>
+                  <span className="vf-icon">⚠️</span>
                   <p className="vf-headline">Este producto no pudo verificarse.</p>
                   <p className="vf-subtext">
                     El código escaneado no existe en la base de datos de NxS.
@@ -347,8 +398,11 @@ export default function Verify() {
               )}
 
               {/* footer */}
+              {/* ✅ CORRECCIÓN 5: Año dinámico */}
               <div className="vf-footer">
-                <span className="vf-footer-text">nxs.verificación © 2025</span>
+                <span className="vf-footer-text">
+                  nxs.verificación © {new Date().getFullYear()}
+                </span>
                 {codigo && (
                   <span className="vf-footer-id" title={codigo}>{codigo}</span>
                 )}

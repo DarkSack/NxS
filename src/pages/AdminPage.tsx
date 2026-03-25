@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import QRCode from "qrcode";
 import { saveFunda } from "../../api/verify";
 
@@ -10,7 +10,9 @@ function setCookie(name: string, value: string, days = 1) {
   document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Strict`;
 }
 function getCookie(name: string): string | null {
-  const match = document.cookie.split("; ").find((row) => row.startsWith(`${name}=`));
+  const match = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith(`${name}=`));
   return match ? decodeURIComponent(match.split("=")[1]) : null;
 }
 function deleteCookie(name: string) {
@@ -20,7 +22,9 @@ function deleteCookie(name: string) {
 type Step = "login" | "form" | "qr";
 
 export default function AdminPage() {
-  const [step, setStep] = useState<Step>(() => getCookie("admin_token") ? "form" : "login");
+  const [step, setStep] = useState<Step>(() =>
+    getCookie("admin_token") ? "form" : "login",
+  );
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -35,10 +39,13 @@ export default function AdminPage() {
 
   const [qrDataURL, setQrDataURL] = useState<string | null>(null);
   const [fundaCodigo, setFundaCodigo] = useState<string | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  // ✅ CORRECCIÓN 4: clearTimeout en el cleanup
   const [revealed, setRevealed] = useState(false);
-  useEffect(() => { setTimeout(() => setRevealed(true), 80); }, []);
+  useEffect(() => {
+    const t = setTimeout(() => setRevealed(true), 80);
+    return () => clearTimeout(t);
+  }, []);
 
   function login(e: React.FormEvent) {
     e.preventDefault();
@@ -66,7 +73,10 @@ export default function AdminPage() {
     e.preventDefault();
     setSaving(true);
     const codigo = crypto.randomUUID().replace(/-/g, "");
+
+    // ✅ CORRECCIÓN 2: Se pasan todos los campos a saveFunda
     await saveFunda({ codigo, modelo, material, proteccion, compatibilidad });
+
     const url = `${import.meta.env.VITE_APP_URL ?? "http://localhost:5173"}/verify/${codigo}`;
     const dataURL = await QRCode.toDataURL(url, {
       width: 800,
@@ -88,6 +98,7 @@ export default function AdminPage() {
     a.click();
   }
 
+  // ✅ CORRECCIÓN 3: resetForm limpia todos los campos
   function resetForm() {
     setModelo("");
     setMaterial("");
@@ -133,7 +144,7 @@ export default function AdminPage() {
           z-index: 1;
           width: 100%;
           max-width: 480px;
-          background: rgba(10, 10, 10, 0.72);
+          background: rgba(10, 10, 10, 0);
           backdrop-filter: blur(28px);
           -webkit-backdrop-filter: blur(28px);
           border-radius: 24px;
@@ -390,11 +401,9 @@ export default function AdminPage() {
 
       <div className="ap-root">
         <div className={`ap-card ${revealed ? "revealed" : ""} ${shake ? "shake" : ""}`}>
-
           <div className="ap-bar" />
 
           <div className="ap-inner">
-
             {/* ── HEADER ── */}
             <div className="ap-header">
               <div>
@@ -409,7 +418,8 @@ export default function AdminPage() {
                   </span>
                 )}
                 {step !== "login" && (
-                  <button className="ap-btn ap-btn-ghost" onClick={logout}>
+                  // ✅ CORRECCIÓN 6: type="button" explícito para evitar submit accidental
+                  <button type="button" className="ap-btn ap-btn-ghost" onClick={logout}>
                     Cerrar sesión
                   </button>
                 )}
@@ -422,20 +432,37 @@ export default function AdminPage() {
             {step === "login" && (
               <>
                 <p className="ap-section-title">Bienvenido de nuevo.</p>
-                <p className="ap-section-desc">Accede al panel para registrar y gestionar fundas NxS.</p>
+                <p className="ap-section-desc">
+                  Accede al panel para registrar y gestionar fundas NxS.
+                </p>
                 <form onSubmit={login}>
                   {loginError && <div className="ap-error">{loginError}</div>}
                   <div className="ap-field">
                     <label className="ap-label">Usuario</label>
-                    <input className="ap-input" placeholder="admin" value={username}
-                      onChange={(e) => setUsername(e.target.value)} autoFocus required />
+                    <input
+                      className="ap-input"
+                      placeholder="admin"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      autoFocus
+                      required
+                    />
                   </div>
                   <div className="ap-field">
                     <label className="ap-label">Contraseña</label>
-                    <input type="password" className="ap-input" placeholder="••••••••" value={password}
-                      onChange={(e) => setPassword(e.target.value)} required />
+                    <input
+                      type="password"
+                      className="ap-input"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
                   </div>
-                  <button className="ap-btn ap-btn-primary">Entrar</button>
+                  {/* ✅ CORRECCIÓN 6: type="submit" explícito */}
+                  <button type="submit" className="ap-btn ap-btn-primary">
+                    Entrar
+                  </button>
                 </form>
               </>
             )}
@@ -444,29 +471,49 @@ export default function AdminPage() {
             {step === "form" && (
               <>
                 <p className="ap-section-title">Nueva funda.</p>
-                <p className="ap-section-desc">Rellena los datos para registrarla y generar su QR único.</p>
+                <p className="ap-section-desc">
+                  Rellena los datos para registrarla y generar su QR único.
+                </p>
                 <form onSubmit={crearFunda}>
                   <div className="ap-field">
                     <label className="ap-label">Modelo *</label>
-                    <input className="ap-input" placeholder="ej. iPhone 15 Pro" value={modelo}
-                      onChange={(e) => setModelo(e.target.value)} required />
+                    <input
+                      className="ap-input"
+                      placeholder="ej. iPhone 15 Pro"
+                      value={modelo}
+                      onChange={(e) => setModelo(e.target.value)}
+                      required
+                    />
                   </div>
                   <div className="ap-field">
                     <label className="ap-label">Material</label>
-                    <input className="ap-input" placeholder="ej. Silicona, TPU, Cuero" value={material}
-                      onChange={(e) => setMaterial(e.target.value)} />
+                    <input
+                      className="ap-input"
+                      placeholder="ej. Silicona, TPU, Cuero"
+                      value={material}
+                      onChange={(e) => setMaterial(e.target.value)}
+                    />
                   </div>
                   <div className="ap-field">
                     <label className="ap-label">Protección</label>
-                    <input className="ap-input" placeholder="ej. MilSpec, IP54" value={proteccion}
-                      onChange={(e) => setProteccion(e.target.value)} />
+                    <input
+                      className="ap-input"
+                      placeholder="ej. MilSpec, IP54"
+                      value={proteccion}
+                      onChange={(e) => setProteccion(e.target.value)}
+                    />
                   </div>
                   <div className="ap-field">
                     <label className="ap-label">Compatibilidad</label>
-                    <input className="ap-input" placeholder="ej. MagSafe, Qi" value={compatibilidad}
-                      onChange={(e) => setCompatibilidad(e.target.value)} />
+                    <input
+                      className="ap-input"
+                      placeholder="ej. MagSafe, Qi"
+                      value={compatibilidad}
+                      onChange={(e) => setCompatibilidad(e.target.value)}
+                    />
                   </div>
-                  <button className="ap-btn ap-btn-primary" disabled={saving}>
+                  {/* ✅ CORRECCIÓN 6: type="submit" explícito */}
+                  <button type="submit" className="ap-btn ap-btn-primary" disabled={saving}>
                     {saving ? "Generando…" : "Crear funda + QR"}
                   </button>
                 </form>
@@ -477,48 +524,66 @@ export default function AdminPage() {
             {step === "qr" && qrDataURL && (
               <>
                 <p className="ap-section-title">QR listo.</p>
-                <p className="ap-section-desc">Funda registrada. Descarga el QR para imprimirlo o pegarlo.</p>
+                <p className="ap-section-desc">
+                  Funda registrada. Descarga el QR para imprimirlo o pegarlo.
+                </p>
                 <div className="ap-qr-wrap">
                   <img src={qrDataURL} alt="QR funda" className="ap-qr-img" />
                   <p className="ap-qr-id">{fundaCodigo}</p>
                   <div className="ap-meta">
                     <div className="ap-meta-item">
                       <div className="ap-meta-key">Modelo</div>
-                      <div className={`ap-meta-val ${!modelo ? "ap-meta-empty" : ""}`}>{modelo || "—"}</div>
+                      <div className={`ap-meta-val ${!modelo ? "ap-meta-empty" : ""}`}>
+                        {modelo || "—"}
+                      </div>
                     </div>
                     <div className="ap-meta-item">
                       <div className="ap-meta-key">Material</div>
-                      <div className={`ap-meta-val ${!material ? "ap-meta-empty" : ""}`}>{material || "—"}</div>
+                      <div className={`ap-meta-val ${!material ? "ap-meta-empty" : ""}`}>
+                        {material || "—"}
+                      </div>
                     </div>
                     <div className="ap-meta-item">
                       <div className="ap-meta-key">Protección</div>
-                      <div className={`ap-meta-val ${!proteccion ? "ap-meta-empty" : ""}`}>{proteccion || "—"}</div>
+                      <div className={`ap-meta-val ${!proteccion ? "ap-meta-empty" : ""}`}>
+                        {proteccion || "—"}
+                      </div>
                     </div>
                     <div className="ap-meta-item">
                       <div className="ap-meta-key">Compatibilidad</div>
-                      <div className={`ap-meta-val ${!compatibilidad ? "ap-meta-empty" : ""}`}>{compatibilidad || "—"}</div>
+                      <div className={`ap-meta-val ${!compatibilidad ? "ap-meta-empty" : ""}`}>
+                        {compatibilidad || "—"}
+                      </div>
                     </div>
                   </div>
                   <div className="ap-btn-row">
-                    <button className="ap-btn ap-btn-primary" onClick={downloadQR}>Descargar QR</button>
-                    <button className="ap-btn ap-btn-outline" onClick={resetForm}>Nueva funda</button>
+                    {/* ✅ CORRECCIÓN 6: type="button" explícito */}
+                    <button type="button" className="ap-btn ap-btn-primary" onClick={downloadQR}>
+                      Descargar QR
+                    </button>
+                    <button type="button" className="ap-btn ap-btn-outline" onClick={resetForm}>
+                      Nueva funda
+                    </button>
                   </div>
                 </div>
               </>
             )}
 
             <div className="ap-footer">
-              <span className="ap-footer-text">nxs.admin © 2025</span>
               <span className="ap-footer-text">
-                {step === "login" ? "Acceso restringido" : step === "form" ? "Sesión activa" : "Registro completado"}
+                nxs.admin © {new Date().getFullYear()}
+              </span>
+              <span className="ap-footer-text">
+                {step === "login"
+                  ? "Acceso restringido"
+                  : step === "form"
+                    ? "Sesión activa"
+                    : "Registro completado"}
               </span>
             </div>
-
           </div>
         </div>
       </div>
-
-      <canvas ref={canvasRef} style={{ display: "none" }} />
     </>
   );
 }
