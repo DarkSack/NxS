@@ -1,4 +1,4 @@
-import { openDB } from "idb";
+import { supabase } from "../lib/supabase";
 
 export interface VerifyResponse {
   valido: boolean;
@@ -14,53 +14,43 @@ export interface Funda {
   material?: string;
   proteccion?: string;
   compatibilidad?: string;
-  creadaEn?: number;
+  creadaEn?: string; // ✅ Cambiado a string (ISO 8601 / timestamptz)
 }
-
-// ── DB ────────────────────────────────────────────────────────
-const DB_NAME = "nx-s-db";
-const STORE = "fundas";
-
-function getDB() {
-  return openDB(DB_NAME, 1, {
-    upgrade(db) {
-      if (!db.objectStoreNames.contains(STORE)) {
-        db.createObjectStore(STORE, { keyPath: "codigo" });
-      }
-    },
-  });
-}
-
-// ── CRUD ──────────────────────────────────────────────────────
 
 export async function saveFunda(funda: Funda): Promise<void> {
-  const db = await getDB();
-  await db.put(STORE, { ...funda, creadaEn: Date.now() });
-}
+  const { error } = await supabase
+    .from("fundas")
+    .upsert([funda], { onConflict: "codigo" }); // ✅ upsert en vez de insert
 
-export async function getFundas(): Promise<Funda[]> {
-  const db = await getDB();
-  return db.getAll(STORE);
+  if (error) {
+    console.error("Error guardando funda:", error);
+    throw error;
+  }
 }
-
-export async function deleteFunda(codigo: string): Promise<void> {
-  const db = await getDB();
-  await db.delete(STORE, codigo);
-}
-
-// ── VERIFY ────────────────────────────────────────────────────
 
 export async function verifyQR(code: string): Promise<VerifyResponse> {
-  const db = await getDB();
-  const funda: Funda | undefined = await db.get(STORE, code);
+  const { data, error } = await supabase
+    .from("fundas")
+    .select("*")
+    .eq("codigo", code)
+    .single();
 
-  if (!funda) return { valido: false };
+  // ✅ PGRST116 = no rows found (no es un error real, simplemente no existe)
+  if (error) {
+    if (error.code === "PGRST116") {
+      return { valido: false };
+    }
+    console.error("Error consultando funda:", error);
+    throw error;
+  }
+
+  if (!data) return { valido: false };
 
   return {
     valido: true,
-    modelo: funda.modelo,
-    material: funda.material,
-    proteccion: funda.proteccion,
-    compatibilidad: funda.compatibilidad,
+    modelo: data.modelo,
+    material: data.material,
+    proteccion: data.proteccion,
+    compatibilidad: data.compatibilidad,
   };
 }

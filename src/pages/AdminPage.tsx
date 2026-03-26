@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import QRCode from "qrcode";
 import { saveFunda } from "../../api/verify";
+
+type Step = "login" | "form" | "qr";
 
 const ADMIN_USER = "k8JME6DdwTYnm54";
 const ADMIN_PASS = "5Fr!PGs5JhfC";
@@ -19,8 +21,6 @@ function deleteCookie(name: string) {
   document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
 }
 
-type Step = "login" | "form" | "qr";
-
 export default function AdminPage() {
   const [step, setStep] = useState<Step>(() =>
     getCookie("admin_token") ? "form" : "login",
@@ -30,21 +30,29 @@ export default function AdminPage() {
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
   const [shake, setShake] = useState(false);
+  const shakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null); // ✅ shake con cleanup
 
   const [modelo, setModelo] = useState("");
   const [material, setMaterial] = useState("");
   const [proteccion, setProteccion] = useState("");
   const [compatibilidad, setCompatibilidad] = useState("");
   const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState(""); // ✅ error visible en el form
 
   const [qrDataURL, setQrDataURL] = useState<string | null>(null);
   const [fundaCodigo, setFundaCodigo] = useState<string | null>(null);
 
-  // ✅ CORRECCIÓN 4: clearTimeout en el cleanup
   const [revealed, setRevealed] = useState(false);
   useEffect(() => {
     const t = setTimeout(() => setRevealed(true), 80);
     return () => clearTimeout(t);
+  }, []);
+
+  // ✅ Cleanup del shake timer al desmontar
+  useEffect(() => {
+    return () => {
+      if (shakeTimerRef.current) clearTimeout(shakeTimerRef.current);
+    };
   }, []);
 
   function login(e: React.FormEvent) {
@@ -57,7 +65,7 @@ export default function AdminPage() {
     } else {
       setLoginError("Usuario o contraseña incorrectos");
       setShake(true);
-      setTimeout(() => setShake(false), 600);
+      shakeTimerRef.current = setTimeout(() => setShake(false), 600); // ✅
     }
   }
 
@@ -67,28 +75,34 @@ export default function AdminPage() {
     setUsername("");
     setPassword("");
     resetForm();
-    window.location.reload()
+    // ✅ window.location.reload() eliminado
   }
 
   async function crearFunda(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    const codigo = crypto.randomUUID().replace(/-/g, "");
+    setFormError("");
+    try {
+      // ✅ try/catch para que saving no quede bloqueado
+      const codigo = crypto.randomUUID().replace(/-/g, "");
+      await saveFunda({ codigo, modelo, material, proteccion, compatibilidad });
 
-    // ✅ CORRECCIÓN 2: Se pasan todos los campos a saveFunda
-    await saveFunda({ codigo, modelo, material, proteccion, compatibilidad });
-
-    const url = `${"https://nx-s.vercel.app"}/verify/${codigo}`;
-    const dataURL = await QRCode.toDataURL(url, {
-      width: 800,
-      margin: 4,
-      errorCorrectionLevel: "H",
-      color: { dark: "#000000", light: "#ffffff" },
-    });
-    setQrDataURL(dataURL);
-    setFundaCodigo(codigo);
-    setSaving(false);
-    setStep("qr");
+      const url = `${import.meta.env.VITE_APP_URL}/verify/${codigo}`; // ✅ variable de entorno
+      const dataURL = await QRCode.toDataURL(url, {
+        width: 800,
+        margin: 4,
+        errorCorrectionLevel: "H",
+        color: { dark: "#000000", light: "#ffffff" },
+      });
+      setQrDataURL(dataURL);
+      setFundaCodigo(codigo);
+      setStep("qr");
+    } catch (err) {
+      console.error(err);
+      setFormError("Error al guardar la funda. Intenta de nuevo."); // ✅
+    } finally {
+      setSaving(false); // ✅ siempre se desbloquea
+    }
   }
 
   function downloadQR() {
@@ -99,7 +113,6 @@ export default function AdminPage() {
     a.click();
   }
 
-  // ✅ CORRECCIÓN 3: resetForm limpia todos los campos
   function resetForm() {
     setModelo("");
     setMaterial("");
@@ -107,6 +120,7 @@ export default function AdminPage() {
     setCompatibilidad("");
     setQrDataURL(null);
     setFundaCodigo(null);
+    setFormError("");
     setStep("form");
   }
 
@@ -399,7 +413,6 @@ export default function AdminPage() {
         }
         .ap-footer-text { font-size: 0.62rem; color: rgba(255,255,255,0.18); letter-spacing: 0.08em; }
       `}</style>
-
       <div className="ap-root">
         <div
           className={`ap-card ${revealed ? "revealed" : ""} ${shake ? "shake" : ""}`}
@@ -421,7 +434,6 @@ export default function AdminPage() {
                   </span>
                 )}
                 {step !== "login" && (
-                  // ✅ CORRECCIÓN 6: type="button" explícito para evitar submit accidental
                   <button
                     type="button"
                     className="ap-btn ap-btn-ghost"
@@ -466,7 +478,6 @@ export default function AdminPage() {
                       required
                     />
                   </div>
-                  {/* ✅ CORRECCIÓN 6: type="submit" explícito */}
                   <button type="submit" className="ap-btn ap-btn-primary">
                     Entrar
                   </button>
@@ -482,6 +493,8 @@ export default function AdminPage() {
                   Rellena los datos para registrarla y generar su QR único.
                 </p>
                 <form onSubmit={crearFunda}>
+                  {formError && <div className="ap-error">{formError}</div>}{" "}
+                  {/* ✅ */}
                   <div className="ap-field">
                     <label className="ap-label">Modelo *</label>
                     <input
@@ -519,7 +532,6 @@ export default function AdminPage() {
                       onChange={(e) => setCompatibilidad(e.target.value)}
                     />
                   </div>
-                  {/* ✅ CORRECCIÓN 6: type="submit" explícito */}
                   <button
                     type="submit"
                     className="ap-btn ap-btn-primary"
@@ -576,7 +588,6 @@ export default function AdminPage() {
                     </div>
                   </div>
                   <div className="ap-btn-row">
-                    {/* ✅ CORRECCIÓN 6: type="button" explícito */}
                     <button
                       type="button"
                       className="ap-btn ap-btn-primary"
