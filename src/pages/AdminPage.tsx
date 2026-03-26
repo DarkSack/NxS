@@ -22,6 +22,8 @@ function deleteCookie(name: string) {
 type Step = "login" | "form" | "qr";
 
 export default function AdminPage() {
+
+  console.log(process.env);
   const [step, setStep] = useState<Step>(() =>
     getCookie("admin_token") ? "form" : "login",
   );
