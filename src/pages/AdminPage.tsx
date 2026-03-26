@@ -77,7 +77,7 @@ export default function AdminPage() {
     // ✅ CORRECCIÓN 2: Se pasan todos los campos a saveFunda
     await saveFunda({ codigo, modelo, material, proteccion, compatibilidad });
 
-    const url = `${import.meta.env.VITE_APP_URL ?? "http://localhost:5173"}/verify/${codigo}`;
+    const url = `${import.meta.env.VITE_APP_URL ?? "https://nx-s.vercel.app"}/verify/${codigo}`;
     const dataURL = await QRCode.toDataURL(url, {
       width: 800,
       margin: 4,
