@@ -18,8 +18,8 @@ export interface Funda {
 }
 
 // ── DB ────────────────────────────────────────────────────────
-const DB_NAME = import.meta.env.VITE_DB_NAME;
-const STORE = import.meta.env.VITE_DB_STORE;
+const DB_NAME = process.env.VITE_DB_NAME ?? "nx-s-db";
+const STORE = process.env.VITE_DB_STORE ?? "fundas";
 
 function getDB() {
   return openDB(DB_NAME, 1, {

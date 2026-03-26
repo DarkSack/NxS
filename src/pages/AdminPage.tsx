@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import QRCode from "qrcode";
 import { saveFunda } from "../../api/verify";
 
-const ADMIN_USER = import.meta.env.VITE_ADMIN_USER ?? "admin";
-const ADMIN_PASS = import.meta.env.VITE_ADMIN_PASS ?? "1234";
+const ADMIN_USER = process.env.VITE_ADMIN_USER ?? "admin";
+const ADMIN_PASS = process.env.VITE_ADMIN_PASS ?? "1234";
 
 function setCookie(name: string, value: string, days = 1) {
   const expires = new Date(Date.now() + days * 864e5).toUTCString();
@@ -77,7 +77,7 @@ export default function AdminPage() {
     // ✅ CORRECCIÓN 2: Se pasan todos los campos a saveFunda
     await saveFunda({ codigo, modelo, material, proteccion, compatibilidad });
 
-    const url = `${import.meta.env.VITE_APP_URL ?? "https://nx-s.vercel.app"}/verify/${codigo}`;
+    const url = `${process.env.VITE_APP_URL ?? "https://nx-s.vercel.app"}/verify/${codigo}`;
     const dataURL = await QRCode.toDataURL(url, {
       width: 800,
       margin: 4,
