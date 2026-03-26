@@ -87,7 +87,7 @@ export default function AdminPage() {
       const codigo = crypto.randomUUID().replace(/-/g, "");
       await saveFunda({ codigo, modelo, material, proteccion, compatibilidad });
 
-      const url = `${import.meta.env.VITE_APP_URL}/verify/${codigo}`; // ✅ variable de entorno
+      const url = `https://nx-s.vercel.app/verify/${codigo}`;
       const dataURL = await QRCode.toDataURL(url, {
         width: 800,
         margin: 4,
