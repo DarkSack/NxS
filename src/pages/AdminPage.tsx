@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import QRCode from "qrcode";
 import { saveFunda } from "../../api/verify";
 
-const ADMIN_USER = process.env.VITE_ADMIN_USER ?? "admin";
-const ADMIN_PASS = process.env.VITE_ADMIN_PASS ?? "1234";
+const ADMIN_USER = "k8JME6DdwTYnm54";
+const ADMIN_PASS = "5Fr!PGs5JhfC";
 
 function setCookie(name: string, value: string, days = 1) {
   const expires = new Date(Date.now() + days * 864e5).toUTCString();
@@ -22,8 +22,6 @@ function deleteCookie(name: string) {
 type Step = "login" | "form" | "qr";
 
 export default function AdminPage() {
-
-  console.log(process.env);
   const [step, setStep] = useState<Step>(() =>
     getCookie("admin_token") ? "form" : "login",
   );
@@ -69,6 +67,7 @@ export default function AdminPage() {
     setUsername("");
     setPassword("");
     resetForm();
+    window.location.reload()
   }
 
   async function crearFunda(e: React.FormEvent) {
@@ -79,7 +78,7 @@ export default function AdminPage() {
     // ✅ CORRECCIÓN 2: Se pasan todos los campos a saveFunda
     await saveFunda({ codigo, modelo, material, proteccion, compatibilidad });
 
-    const url = `${process.env.VITE_APP_URL ?? "https://nx-s.vercel.app"}/verify/${codigo}`;
+    const url = `${"https://nx-s.vercel.app"}/verify/${codigo}`;
     const dataURL = await QRCode.toDataURL(url, {
       width: 800,
       margin: 4,
@@ -402,7 +401,9 @@ export default function AdminPage() {
       `}</style>
 
       <div className="ap-root">
-        <div className={`ap-card ${revealed ? "revealed" : ""} ${shake ? "shake" : ""}`}>
+        <div
+          className={`ap-card ${revealed ? "revealed" : ""} ${shake ? "shake" : ""}`}
+        >
           <div className="ap-bar" />
 
           <div className="ap-inner">
@@ -421,7 +422,11 @@ export default function AdminPage() {
                 )}
                 {step !== "login" && (
                   // ✅ CORRECCIÓN 6: type="button" explícito para evitar submit accidental
-                  <button type="button" className="ap-btn ap-btn-ghost" onClick={logout}>
+                  <button
+                    type="button"
+                    className="ap-btn ap-btn-ghost"
+                    onClick={logout}
+                  >
                     Cerrar sesión
                   </button>
                 )}
@@ -515,7 +520,11 @@ export default function AdminPage() {
                     />
                   </div>
                   {/* ✅ CORRECCIÓN 6: type="submit" explícito */}
-                  <button type="submit" className="ap-btn ap-btn-primary" disabled={saving}>
+                  <button
+                    type="submit"
+                    className="ap-btn ap-btn-primary"
+                    disabled={saving}
+                  >
                     {saving ? "Generando…" : "Crear funda + QR"}
                   </button>
                 </form>
@@ -535,35 +544,51 @@ export default function AdminPage() {
                   <div className="ap-meta">
                     <div className="ap-meta-item">
                       <div className="ap-meta-key">Modelo</div>
-                      <div className={`ap-meta-val ${!modelo ? "ap-meta-empty" : ""}`}>
+                      <div
+                        className={`ap-meta-val ${!modelo ? "ap-meta-empty" : ""}`}
+                      >
                         {modelo || "—"}
                       </div>
                     </div>
                     <div className="ap-meta-item">
                       <div className="ap-meta-key">Material</div>
-                      <div className={`ap-meta-val ${!material ? "ap-meta-empty" : ""}`}>
+                      <div
+                        className={`ap-meta-val ${!material ? "ap-meta-empty" : ""}`}
+                      >
                         {material || "—"}
                       </div>
                     </div>
                     <div className="ap-meta-item">
                       <div className="ap-meta-key">Protección</div>
-                      <div className={`ap-meta-val ${!proteccion ? "ap-meta-empty" : ""}`}>
+                      <div
+                        className={`ap-meta-val ${!proteccion ? "ap-meta-empty" : ""}`}
+                      >
                         {proteccion || "—"}
                       </div>
                     </div>
                     <div className="ap-meta-item">
                       <div className="ap-meta-key">Compatibilidad</div>
-                      <div className={`ap-meta-val ${!compatibilidad ? "ap-meta-empty" : ""}`}>
+                      <div
+                        className={`ap-meta-val ${!compatibilidad ? "ap-meta-empty" : ""}`}
+                      >
                         {compatibilidad || "—"}
                       </div>
                     </div>
                   </div>
                   <div className="ap-btn-row">
                     {/* ✅ CORRECCIÓN 6: type="button" explícito */}
-                    <button type="button" className="ap-btn ap-btn-primary" onClick={downloadQR}>
+                    <button
+                      type="button"
+                      className="ap-btn ap-btn-primary"
+                      onClick={downloadQR}
+                    >
                       Descargar QR
                     </button>
-                    <button type="button" className="ap-btn ap-btn-outline" onClick={resetForm}>
+                    <button
+                      type="button"
+                      className="ap-btn ap-btn-outline"
+                      onClick={resetForm}
+                    >
                       Nueva funda
                     </button>
                   </div>
