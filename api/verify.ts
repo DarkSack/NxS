@@ -18,9 +18,7 @@ export interface Funda {
 }
 
 export async function saveFunda(funda: Funda): Promise<void> {
-  const { error } = await supabase
-    .from("fundas")
-    .upsert([funda], { onConflict: "codigo" }); // ✅ upsert en vez de insert
+  const { error } = await supabase.from("fundas").insert([funda]);
 
   if (error) {
     console.error("Error guardando funda:", error);

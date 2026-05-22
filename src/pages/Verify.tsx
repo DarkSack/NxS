@@ -295,7 +295,6 @@ export default function Verify() {
       `}</style>
 
       <div className="vf-root">
-
         {/* ── LOADING ── */}
         {loading && (
           <div className="vf-loading">
@@ -307,18 +306,18 @@ export default function Verify() {
         {/* ── RESULTADO ── */}
         {!loading && (
           <div className={`vf-card ${revealed ? "revealed" : ""}`}>
-
             {/* barra de color arriba */}
-            <div className={`vf-bar ${
-              sinCodigo
-                ? "vf-bar-warning"
-                : valido
-                  ? "vf-bar-valid"
-                  : "vf-bar-invalid"
-            }`} />
+            <div
+              className={`vf-bar ${
+                sinCodigo
+                  ? "vf-bar-warning"
+                  : valido
+                    ? "vf-bar-valid"
+                    : "vf-bar-invalid"
+              }`}
+            />
 
             <div className="vf-inner">
-
               {/* brand */}
               <div className="vf-brand">NxS</div>
               <p className="vf-tagline">Certificado de autenticidad</p>
@@ -335,7 +334,8 @@ export default function Verify() {
                   <span className="vf-icon">🔍</span>
                   <p className="vf-headline">No se proporcionó un código.</p>
                   <p className="vf-subtext">
-                    Escanea el código QR de tu producto NxS para verificar su autenticidad.
+                    Escanea el código QR de tu producto NxS para verificar su
+                    autenticidad.
                   </p>
                 </>
               ) : valido && data ? (
@@ -348,33 +348,41 @@ export default function Verify() {
 
                   <p className="vf-headline">Tu funda es 100% auténtica.</p>
                   <p className="vf-subtext">
-                    Este producto ha sido registrado y certificado por NxS.
-                    Escanea con confianza — su autenticidad está garantizada.
+                    Este producto ha sido registrado y certificado por
+                    Case-Nova. Su autenticidad está garantizada.
                   </p>
 
                   {/* specs */}
                   <div className="vf-specs">
                     <div className="vf-spec">
                       <div className="vf-spec-label">Modelo</div>
-                      <div className={`vf-spec-value ${!data.modelo ? "vf-spec-empty" : ""}`}>
+                      <div
+                        className={`vf-spec-value ${!data.modelo ? "vf-spec-empty" : ""}`}
+                      >
                         {data.modelo || "—"}
                       </div>
                     </div>
                     <div className="vf-spec">
                       <div className="vf-spec-label">Material</div>
-                      <div className={`vf-spec-value ${!data.material ? "vf-spec-empty" : ""}`}>
+                      <div
+                        className={`vf-spec-value ${!data.material ? "vf-spec-empty" : ""}`}
+                      >
                         {data.material || "—"}
                       </div>
                     </div>
                     <div className="vf-spec">
                       <div className="vf-spec-label">Protección</div>
-                      <div className={`vf-spec-value ${!data.proteccion ? "vf-spec-empty" : ""}`}>
+                      <div
+                        className={`vf-spec-value ${!data.proteccion ? "vf-spec-empty" : ""}`}
+                      >
                         {data.proteccion || "—"}
                       </div>
                     </div>
                     <div className="vf-spec">
                       <div className="vf-spec-label">Compatibilidad</div>
-                      <div className={`vf-spec-value ${!data.compatibilidad ? "vf-spec-empty" : ""}`}>
+                      <div
+                        className={`vf-spec-value ${!data.compatibilidad ? "vf-spec-empty" : ""}`}
+                      >
                         {data.compatibilidad || "—"}
                       </div>
                     </div>
@@ -389,10 +397,13 @@ export default function Verify() {
                   </div>
 
                   <span className="vf-icon">⚠️</span>
-                  <p className="vf-headline">Este producto no pudo verificarse.</p>
+                  <p className="vf-headline">
+                    Este producto no pudo verificarse.
+                  </p>
                   <p className="vf-subtext">
                     El código escaneado no existe en la base de datos de NxS.
-                    Puede tratarse de un producto no registrado o una falsificación.
+                    Puede tratarse de un producto no registrado o una
+                    falsificación.
                   </p>
                 </>
               )}
@@ -404,14 +415,14 @@ export default function Verify() {
                   nxs.verificación © {new Date().getFullYear()}
                 </span>
                 {codigo && (
-                  <span className="vf-footer-id" title={codigo}>{codigo}</span>
+                  <span className="vf-footer-id" title={codigo}>
+                    {codigo}
+                  </span>
                 )}
               </div>
-
             </div>
           </div>
         )}
-
       </div>
     </>
   );
