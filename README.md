@@ -1,108 +1,99 @@
-# 🎫 NxS — FundaQR
+# NxS — Certificado de autenticidad para fundas de teléfono
 
-Aplicación web (SPA) construida con **React + TypeScript + Vite** para la generación, verificación y validación de **códigos QR** vinculados a un backend de **Supabase**. Diseñada como una herramienta ligera para gestión de asistencia/acceso a eventos y credenciales digitales.
-
-> Nombre interno del paquete: **`fundaqr`**.
+NxS es un **sistema de verificación de originalidad** para fundas de móvil de la marca **NxS / Case-Nova**. Cada funda que sale de fábrica lleva pegado un código QR único. El cliente lo escanea con la cámara del teléfono y en menos de un segundo ve si su funda es **auténtica** y las especificaciones exactas del producto que compró (modelo, material, protección, compatibilidad).
 
 ---
 
-## ✨ Características
+## Cómo se usa
 
-- 📷 Generación de códigos QR únicos por usuario/entrada.
-- ✅ Verificación en tiempo real contra Supabase.
-- 💾 Persistencia offline con **IndexedDB** (`idb`) para consultas rápidas.
-- 🔐 Endpoint serverless `/api/verify` (desplegado en Vercel) para validar QR.
-- 🧭 Enrutamiento con **React Router v7**.
-- ⚡ Build ultra-rápido con **Vite 7** y HMR.
+### 👤 Para el cliente
 
----
+1. Escaneas el QR pegado a la funda con la cámara del teléfono.
+2. Se abre `https://nx-s.vercel.app/verify/<código>`.
+3. La app te muestra:
+   - ✅ **Producto verificado** → tarjeta verde con las 4 especificaciones de tu funda.
+   - ⚠️ **No verificado** → tarjeta roja: el código no existe en la base de datos, probablemente es una falsificación.
+   - 🔍 **Sin código** → mensaje de ayuda para escanear el QR correctamente.
 
-## 🛠️ Stack
+### 🛠 Para el admin (fábrica / operador NxS)
 
-- **Frontend:** React 19 · TypeScript 5.9 · Vite 7
-- **Estilos:** CSS módulos (carpeta `styles/`)
-- **Enrutamiento:** react-router-dom v7
-- **Backend / DB:** Supabase (`@supabase/supabase-js`)
-- **HTTP:** Axios
-- **QR:** `qrcode`
-- **Offline cache:** IndexedDB (`idb`)
-- **Deploy:** Vercel (edge/serverless functions en `/api`)
+1. Entra a `https://nx-s.vercel.app/adminpage` e inicia sesión.
+2. Formulario de nueva funda: `Modelo`, `Material`, `Protección`, `Compatibilidad`.
+3. Al enviar, NxS genera un UUID único, lo registra en Supabase y produce un **QR en alta resolución (800×800, corrección H)** apuntando a la URL de verificación de esa funda.
+4. Descargas el PNG del QR para imprimirlo o pegarlo en la funda física.
+5. Puedes seguir creando fundas en la misma sesión ("Nueva funda") o cerrar sesión.
 
 ---
 
-## 🚀 Puesta en marcha
+## Rutas
+
+| Ruta                    | Público    | Función                                          |
+| ----------------------- | ---------- | ------------------------------------------------ |
+| `/verify/:codigo`       | Cliente    | Verifica un código QR y muestra la ficha         |
+| `/adminpage`            | Interno    | Login + alta de fundas + generación de QR        |
+
+---
+
+## Bajo el capó
+
+- **Frontend:** React 19 + TypeScript + Vite 7, con **React Router** y estilos inline (glassmorphism, dark).
+- **Base de datos:** tabla `fundas` en **Supabase** con `codigo` como clave única.
+- **QR:** librería `qrcode` en el navegador, PNG data-URL descargable.
+- **Fuente:** Sedgwick Ave Display + Montserrat (Google Fonts).
+- **Deploy:** Vercel (proyecto `nx-s`), con una serverless function opcional en `api/verify.ts`.
+
+---
+
+## Setup local
 
 ```bash
-# Clonar
 git clone https://github.com/DarkSack/NxS.git
 cd NxS
-
-# Instalar dependencias
 npm install
 
-# Modo desarrollo
-npm run dev            # http://localhost:5173
-
-# Build de producción
-npm run build
-
-# Previsualizar el build
-npm run preview
-
-# Lint
-npm run lint
+cp .env.example .env    # rellena las variables
+npm run dev             # http://localhost:5173
 ```
 
----
-
-## 🔐 Variables de entorno
-
-Crea un archivo `.env` (ver también `vercel.json` para producción):
+### Variables de entorno
 
 ```env
 VITE_SUPABASE_URL=https://xxxx.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJhbGciOi...
 ```
 
+### Tabla `fundas`
+
+```sql
+create table public.fundas (
+  codigo text primary key,
+  modelo text not null,
+  material text,
+  proteccion text,
+  compatibilidad text,
+  creadaEn timestamptz not null default now()
+);
+```
+
 ---
 
-## 📁 Estructura
+## Estructura
 
 ```
 NxS/
-├── api/
-│   └── verify.ts         # Serverless function para validar QR
 ├── src/
 │   ├── App.tsx
 │   ├── main.tsx
-│   ├── pages/            # Vistas de la SPA
-│   ├── routes/           # Definición de rutas
-│   └── assets/
-├── lib/                  # Cliente Supabase, helpers
-├── styles/               # Estilos globales
-├── public/
-├── vercel.json           # Configuración de deploy
-├── vite.config.ts
-└── tsconfig.json
+│   ├── pages/
+│   │   ├── Verify.tsx      # /verify/:codigo (público)
+│   │   ├── AdminPage.tsx   # /adminpage (login + alta + QR)
+│   │   └── BackgroundMusic.tsx
+│   └── routes/routes.tsx
+├── api/
+│   └── verify.ts           # helpers Supabase (saveFunda, verifyQR)
+├── lib/supabase.ts
+└── public/NxS.png          # imagen de fondo del panel
 ```
-
----
-
-## ☁️ Deploy
-
-Configurado para **Vercel**:
-
-```bash
-vercel --prod
-```
-
-Las funciones bajo `/api` se despliegan automáticamente como serverless functions.
-
----
-
-## 🤝 Contribución
-
-PRs bienvenidos. Abre un issue si tienes una idea o encuentras un bug.
 
 ---
 
