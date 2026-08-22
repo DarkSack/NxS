@@ -1,74 +1,109 @@
-# React + TypeScript + Vite
+# 🎫 NxS — FundaQR
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicación web (SPA) construida con **React + TypeScript + Vite** para la generación, verificación y validación de **códigos QR** vinculados a un backend de **Supabase**. Diseñada como una herramienta ligera para gestión de asistencia/acceso a eventos y credenciales digitales.
 
-Currently, two official plugins are available:
+> Nombre interno del paquete: **`fundaqr`**.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## ✨ Características
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- 📷 Generación de códigos QR únicos por usuario/entrada.
+- ✅ Verificación en tiempo real contra Supabase.
+- 💾 Persistencia offline con **IndexedDB** (`idb`) para consultas rápidas.
+- 🔐 Endpoint serverless `/api/verify` (desplegado en Vercel) para validar QR.
+- 🧭 Enrutamiento con **React Router v7**.
+- ⚡ Build ultra-rápido con **Vite 7** y HMR.
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🛠️ Stack
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- **Frontend:** React 19 · TypeScript 5.9 · Vite 7
+- **Estilos:** CSS módulos (carpeta `styles/`)
+- **Enrutamiento:** react-router-dom v7
+- **Backend / DB:** Supabase (`@supabase/supabase-js`)
+- **HTTP:** Axios
+- **QR:** `qrcode`
+- **Offline cache:** IndexedDB (`idb`)
+- **Deploy:** Vercel (edge/serverless functions en `/api`)
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+---
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## 🚀 Puesta en marcha
+
+```bash
+# Clonar
+git clone https://github.com/DarkSack/NxS.git
+cd NxS
+
+# Instalar dependencias
+npm install
+
+# Modo desarrollo
+npm run dev            # http://localhost:5173
+
+# Build de producción
+npm run build
+
+# Previsualizar el build
+npm run preview
+
+# Lint
+npm run lint
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🔐 Variables de entorno
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Crea un archivo `.env` (ver también `vercel.json` para producción):
+
+```env
+VITE_SUPABASE_URL=https://xxxx.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOi...
 ```
-"# NxS" 
+
+---
+
+## 📁 Estructura
+
+```
+NxS/
+├── api/
+│   └── verify.ts         # Serverless function para validar QR
+├── src/
+│   ├── App.tsx
+│   ├── main.tsx
+│   ├── pages/            # Vistas de la SPA
+│   ├── routes/           # Definición de rutas
+│   └── assets/
+├── lib/                  # Cliente Supabase, helpers
+├── styles/               # Estilos globales
+├── public/
+├── vercel.json           # Configuración de deploy
+├── vite.config.ts
+└── tsconfig.json
+```
+
+---
+
+## ☁️ Deploy
+
+Configurado para **Vercel**:
+
+```bash
+vercel --prod
+```
+
+Las funciones bajo `/api` se despliegan automáticamente como serverless functions.
+
+---
+
+## 🤝 Contribución
+
+PRs bienvenidos. Abre un issue si tienes una idea o encuentras un bug.
+
+---
+
+Hecho con ❤️ por **Sack**.
